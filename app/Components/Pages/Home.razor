@@ -1,0 +1,46 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject AbartDbContext AbartDbContext
+
+<PageTitle>Oan den tuug</PageTitle>
+@if (Products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{      
+    <div class="row">
+         @foreach (var product in Products)
+        {
+            <button class="col-md-12 mb-2 btn btn-primary" @onclick="@(() => UpdateTransaction(product))">
+                @product.Name @(Transaction.FirstOrDefault(p => p.ProductId == product.Id)?.Quantity)
+
+            </button>            
+        }
+    </div>
+}
+
+@code {
+    private List<Product> Products;
+    private List<Order> Transaction;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Products = AbartDbContext.Products.ToList();
+        Transaction = new List<Order>();
+    }
+
+    private void UpdateTransaction(Product product)
+    {
+        var order = Transaction.FirstOrDefault(p => p.ProductId == product.Id);
+        if (order == null)
+        {
+            order = new Order { ProductId = product.Id, Quantity = 1 };
+            Transaction.Add(order);
+        }
+        else
+        {
+            order.Quantity++;
+        }
+    } 
+}
