@@ -1,0 +1,62 @@
+﻿@page "/stock"
+@rendermode InteractiveServer
+@inject AbartDbContext AbartDbContext
+
+<PageTitle>Stock</PageTitle>
+@if (Inventory == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        @foreach (var stockItem in Inventory)
+        {
+            <button class="col-md-12 mb-2 btn btn-primary">
+                @stockItem.Product.Name @(stockItem.Quantity)
+            </button>
+        }
+    </div>
+    <div class="row">
+        <input class="col-md-6" type="text" placeholder="Product Name" @bind="@newProductName" @oninput="UpdateAutocomplete" list="productList" autocomplete="off" />
+        <datalist id="productList">
+            @foreach (var stockItem in Inventory)
+            {
+                <option value="@stockItem.Product.Name" />
+            }
+        </datalist>
+        <input class="col-md-6" type="number" placeholder="Quantity" @bind="@newQuantity" />
+        <button class="col-md-12 btn btn-primary" @onclick="AddStock">Add Stock</button>
+    </div>
+
+    @code {
+        private List<Inventory> Inventory;
+        private string newProductName;
+        private int newQuantity;
+
+        protected override async Task OnInitializedAsync()
+        {
+            Inventory = AbartDbContext.Inventory.ToList();
+        }
+
+        private void UpdateAutocomplete(ChangeEventArgs e)
+        {
+            newProductName = e.Value.ToString();
+        }
+
+        private async Task AddStock()
+        {
+            var product = AbartDbContext.Products.FirstOrDefault(p => p.Name == newProductName);
+            if (product == null)
+            {
+                product = new Product { Name = newProductName };
+                AbartDbContext.Products.Add(product);
+                await AbartDbContext.SaveChangesAsync();
+            }
+            var newStockItem = new Inventory { Product = product, Quantity = newQuantity };
+            AbartDbContext.Inventory.Add(newStockItem);
+            await AbartDbContext.SaveChangesAsync();            
+            Inventory.Add(newStockItem);
+        }
+    }
+}
