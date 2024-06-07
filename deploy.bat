@@ -1,0 +1,1 @@
+scp -r ./release afsprong@afsprong.local:/home/afsprong/abart

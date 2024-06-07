@@ -9,3 +9,4 @@ obj
 *.njsproj
 *.sln
 *.sw?
+release

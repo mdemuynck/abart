@@ -1,4 +1,5 @@
 using app.Components;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,13 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AbartDbContext>();
 
 var app = builder.Build();
+
+// Run EF migrations
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AbartDbContext>();
+    dbContext.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -26,4 +34,10 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+if (app.Environment.IsDevelopment())
+{
+    app.Run("http://localhost:5000");
+}else{
+    app.Run("http://*:5000");
+}
+

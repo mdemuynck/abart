@@ -10,29 +10,29 @@
 }
 else
 {
+    @foreach (var product in Products)
+    {
+        <div class="row mb-2">
+            <button class="btn btn-primary">
+                <span @onclick="@(() => UpdateTransaction(product, false, 1))">
+                    <svg height="50px" width="50px">
+                        <use href="bootstrap-icons/bootstrap-icons.svg#arrow-down-circle-fill"></use>
+                    </svg>
+                </span>
+                <span style="display:inline-block; width:80%">
+                    @product.Name
+                    @(Transaction.Orders.FirstOrDefault(o => o.Product.Id == product.Id)?.Quantity)
+                </span>
+                <span @onclick="@(() => UpdateTransaction(product, true, 1))">
+                    <svg height="50px" width="50px">
+                        <use href="bootstrap-icons/bootstrap-icons.svg#arrow-up-circle-fill"></use>
+                    </svg>
+                </span>
+            </button>
+        </div>
+    }
     <div class="row">
-        @foreach (var product in Products)
-        {
-            <div class="col-md-6 mb-2">
-                <button class="col-md-12 btn btn-primary" @onclick="@(() => UpdateTransaction(product))">
-                    <div class="row">
-                        <svg class="col-lg-2"style="width: 100px">
-                            <use href="bootstrap-icons/bootstrap-icons.svg#arrow-down-circle-fill"></use>
-                        </svg>
-                        <div class="col-lg-7">
-                            @product.Name
-                            @(Transaction.Orders.FirstOrDefault(o => o.Product.Id == product.Id)?.Quantity)
-                        </div>
-                        <svg class="col-lg-2" style="width:100px">
-                            <use href="bootstrap-icons/bootstrap-icons.svg#arrow-up-circle-fill"></use>
-                        </svg>
-                    </div>
-                </button>
-            </div>
-        }
-    </div>
-    <div class="row">
-        <button class="col-md-12 btn btn-lg btn-success" @onclick="AddTransaction">Afrekenen (Totaal = @Transaction.Total.ToString("F2"))</button>
+        <button class="btn btn-lg btn-success" @onclick="AddTransaction">Afrekenen (Totaal = @Transaction.Total.ToString("F2"))</button>
     </div>
 }
 
@@ -60,19 +60,24 @@ else
             };
     }
 
-    private void UpdateTransaction(Product product)
+    private void UpdateTransaction(Product product, bool up, int quantity)
     {
         var order = Transaction.Orders.FirstOrDefault(o => o.Product.Id == product.Id);
         if (order == null)
         {
-            order = new Order { Product = product, Quantity = 1 };
-            Transaction.Orders.Add(order);
+            if (up)
+            {
+                order = new Order { Product = product, Quantity = 1 };
+                Transaction.Orders.Add(order);
+                Transaction.Total = order.Quantity * product.UnitPrice;
+            }
         }
         else
         {
-            order.Quantity++;
+            order.Quantity = up == true ? order.Quantity + quantity : order.Quantity - quantity;
+            Transaction.Total = order.Quantity * product.UnitPrice;
         }
-        Transaction.Total += product.UnitPrice;
+
     }
 
     private async Task AddTransaction()
